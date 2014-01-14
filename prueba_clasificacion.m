@@ -1,13 +1,25 @@
 %% Prueba clasificación
 
-% //include jar libraries to matlab environment
-javaaddpath('/opt/weka-3-5-7/weka.jar');
-javaaddpath('/opt/weka/libsvm.jar');
-% //imports java like
-import weka.classifiers.*;
-import weka.classifiers.Classifier.*;
-import weka.classifiers.bayes.BayesNet.*;
-import weka.classifiers.Evaluation.*;
+% include jar libraries to matlab environment
+javaaddpath('/usr/share/java/weka.jar')
+javaaddpath('/usr/share/java/libsvm3.jar')
+%%
+% imports java like
+import weka.core.*
+import weka.classifiers.*
+import weka.classifiers.Classifier.*
+import weka.classifiers.bayes.BayesNet.*
+import weka.classifiers.Evaluation.*
+%%
+import weka.core.converters.ArffLoader;
+import java.io.File;
+    
+loader = ArffLoader();
+loader.setFile(File(filename));
+wekaOBJ = loader.getDataSet();
+wekaOBJ.setClassIndex(wekaOBJ.numAttributes -1);
+
+%%
 % //Arff files
 ARFFtrainfile = &quot;/path/to/arfftrainfile.arff&quot;;
 ARFFtestfile = &quot;/path/to/arfftestfile.arff&quot;;
