@@ -10,6 +10,8 @@
 
 clear all; close all; clc;
 tamBloque = 10;
+saltoCuadrado = floor(tamBloque/3); % salto en el resto es igual a tamBloque
+saltoZigZag = floor(tamBloque/2); % salto en el resto es igual a tamBloque
 
 %% Defino los parametros para cargar los registros
 nombreInicial = 'GPS_xydt_'; 
@@ -26,12 +28,22 @@ aux4.repeticiones = 1:5;
 
 registros = {aux1, aux2, aux3, aux4};
 contador = 0;
+datos2arff = [];
 
 %% Extraigo caracteristicas y armo el dataset
 
 for i = 1:size(registros,2)
     reg = registros{i};
     
+    % Genera solapamiento en los registros de Cuadrado para aumentar el
+    % numero de muestras
+    if i == 1
+        salto = saltoCuadrado;
+    elseif i == 3
+        salto = saltoZigZag;
+    else
+        salto = tamBloque;
+    end
     
     for j = 1:size(reg.repeticiones,2)
         rep = reg.repeticiones(j);
@@ -67,9 +79,14 @@ for i = 1:size(registros,2)
             % Guardo los datos a sacar en el archivo
             datos2txt(:,contador) = horzcat(auxCarac, auxClase)';
             
+            % Guardo los datos para pasarle a weka
+
+            auxArff = sprintf('%f,%f,%f,%f,%s\n', auxCarac, reg.nombre);
+            datos2arff = horzcat(datos2arff, auxArff);
+            
             % Avanzo al bloque siguiente
-            ini = ini + tamBloque;
-            fin = fin + tamBloque;
+            ini = ini + salto;
+            fin = fin + salto;
         end      
     end
 end
@@ -90,4 +107,34 @@ fprintf(fileid, ['mean(dx),mean(dy),std(dx),std(dy)' clases ',\n\n']);
 % print values in column order
 % the values appear on each row of the file
 fprintf(fileid, '%f,%f,%f,%f,%d,%d,%d,%d\n', datos2txt);
+fclose(fileid);
+
+
+
+
+
+%% Creando el archivo arff
+% abro el archivo
+fileid = fopen(['GPScaracteristicas_TamBloque' num2str(tamBloque) '.arff'], 'w');
+
+%%
+clases = [];
+for i = 1:size(registros,2)
+    clases = [clases ',' registros{i}.nombre];
+end
+clases = clases(2:end); % saca la primera coma
+
+% Encabezado y preparacion del terreno
+fprintf(fileid, '%% Caracteristicas extraidas de los registros de GPS\n%%\n\n');
+fprintf(fileid, '@RELATION gps-caracteristicas-tambloque%d\n\n',tamBloque);
+fprintf(fileid, '@ATTRIBUTE mean(dx) REAL\n');
+fprintf(fileid, '@ATTRIBUTE mean(dy) REAL\n');
+fprintf(fileid, '@ATTRIBUTE std(dx) REAL\n');
+fprintf(fileid, '@ATTRIBUTE std(dy) REAL\n');
+fprintf(fileid, ['@ATTRIBUTE class{' clases '}\n\n']);
+fprintf(fileid, '@DATA\n');
+
+% print values in column order
+% the values appear on each row of the file
+fprintf(fileid, '%s', datos2arff);
 fclose(fileid);
