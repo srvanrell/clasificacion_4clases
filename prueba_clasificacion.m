@@ -66,7 +66,7 @@ for i=0:wekaOBJ.numInstances()-1
     salida(i+1) = wekaClassifier.classifyInstance(wekaOBJ.instance(i));
 end
 
-plot(salida)
+stem(salida)
 %%
 wekaOBJ.attributeStats(0)
 %%
